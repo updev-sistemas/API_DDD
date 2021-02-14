@@ -4,6 +4,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using CrossCutting.DepedencyInjection;
+using Domain.Security;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace application
 {
@@ -21,6 +26,15 @@ namespace application
         {
             ConfigureService.ConfigureDependenciesService(services);
             ConfigureRepository.ConfigureDependenciesRepository(services);
+
+            var signingConfiguration = new SigninConfiguration();
+            services.AddSingleton(signingConfiguration);
+
+            var tokenConfigurations = new TokenConfiguration();
+            new ConfigureFromConfigurationOptions<TokenConfiguration>(Configuration.GetSection("TokenConfigurations")).Configure(tokenConfigurations);
+
+            services.AddSingleton(tokenConfigurations);
+
             services.AddControllers();
             services.AddSwaggerGen(x => {
                 x.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -41,6 +55,29 @@ namespace application
                     },
                     TermsOfService = new System.Uri("http://suporte.updev.net.br/licence")
                 }); 
+            });
+
+
+            services.AddAuthentication(option =>
+                    {
+                        option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    })
+                    .AddJwtBearer(options => {
+                        var paramsOptions = options.TokenValidationParameters;
+                        paramsOptions.IssuerSigningKey = signingConfiguration.Key;
+                        paramsOptions.ValidAudience = tokenConfigurations.Audience;
+                        paramsOptions.ValidIssuer = tokenConfigurations.Issuer;
+                        paramsOptions.ValidateIssuerSigningKey = true;
+                        paramsOptions.ValidateLifetime = true;
+                        paramsOptions.ClockSkew = TimeSpan.Zero;
+
+                    });
+
+            services.AddAuthorization(auth => {
+                auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser().Build());
             });
         }
 

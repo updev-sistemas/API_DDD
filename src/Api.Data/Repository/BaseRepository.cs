@@ -7,7 +7,6 @@ using Api.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Linq.Expressions;
-using PagedList;
 
 namespace Api.Data.Repository
 {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Api.Domain.Interfaces.Services.User;
 using application.Models.Responses;
 using application.Models.Users;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -28,6 +29,7 @@ namespace application.Controllers
 
 
         // GET: api/<ValuesController>
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult> Get(int? total = 25, int? page = 1, int? order = 0)
         {
@@ -101,6 +103,7 @@ namespace application.Controllers
         }
 
         // GET api/<ValuesController>/5
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult> GetAsync(Guid id)
         {
@@ -130,6 +133,7 @@ namespace application.Controllers
         }
 
         // POST api/<ValuesController>
+        [Authorize("Bearer")]
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] UserCreateModel model)
         {
@@ -159,6 +163,7 @@ namespace application.Controllers
         }
 
         // PUT api/<ValuesController>/5
+        [Authorize("Bearer")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(Guid id, [FromBody] UserCreateModel model)
         {
@@ -189,6 +194,7 @@ namespace application.Controllers
 
 
         // DELETE api/<ValuesController>/5
+        [Authorize("Bearer")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(Guid id)
         {
